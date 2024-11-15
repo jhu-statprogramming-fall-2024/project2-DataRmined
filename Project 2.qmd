@@ -9,11 +9,14 @@ title: "Project 2"
 ```{r}
 library(dplyr)
 library(ggplot2)
+library(htmlwidgets)
 library(purrr)
 library(rvest)
 library(tidyr)
 library(tidycensus)
 library(tidyverse)
+library(wesanderson)
+library(wordcloud2)
 ```
 
 ## Part 1
@@ -136,6 +139,8 @@ ggplot(income_total_long, aes(x = NAME, y = income, fill = sex)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~year, ncol = 1) +  # Ensure facets are in one row
   labs(title = "Income by Sex and State", 
+       subtitle = "Based on data from the US Census",
+       figure = "Figure created by: Amanda and Da-Yea", 
        x = "U.S States", 
        y = "Median Income (USD)") +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) + 
@@ -165,6 +170,8 @@ income_total_2023 <- income_total %>%
 ggplot(income_total_2023, aes(x = NAME, y = income_difference)) +  # Don't map fill to NAME
   geom_col(fill = "lightsteelblue2") +  # Set all bars to the color you want
   labs(title = "Income Difference by State", 
+       subtitle = "Based on data from the US Census",
+       figure = "Figure created by: Amanda and Da-Yea", 
        x = "U.S States", 
        y = "Income Difference (USD)") +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) +  # Wrap state names if needed
@@ -185,6 +192,8 @@ ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = 
   geom_point(size = 2) +
   labs(
     title = "Income Difference Across Years by State",
+    subtitle = "Based on data from the US Census",
+    figure = "Figure created by: Amanda and Da-Yea", 
     x = "Year",
     y = "Income Difference (USD)"
   ) +
@@ -202,7 +211,10 @@ ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = 
 
 ```
 
-Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in pulling data from the API or the analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
+5.  Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in pulling data from the API or the analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
+
+*Data cleaning*: <br> - `mutate()` from dplyr to create year column <br> - `map_dfr()` from purrr to combine datasets - `select()` from dplyr to remove columns - `pivot_wider()` from tidyr to reorganize data - `pmap_dbl()` from purrr to calculate income difference - `arrange()` from dplyr to reorder the table 
+*Visualize*: <br> - `geom_bar()` to plot the income by sex and states (2021-2023) - `geom_col()` to plot income difference by sex and states (2023) - `geom_line()` to plot income differences across years and state
 
 ## Part 2
 
@@ -298,6 +310,24 @@ In this part, you and your partner will use the `rvest` package to scrape data f
 4.  Analyze the data. Perform a simple analysis of your choice. For example, you could
 
     -   Count how many times specific words or themes appear.
+
+        ```{r}
+        cuisine_wordcloud <- data.frame(
+          word = table(michelin_table$cuisine),  
+          freq = as.integer(table(michelin_table$cuisine)) 
+        )
+
+        saveWidget(
+          wordcloud2(cuisine_wordcloud, 
+                     color = wes_palette("GrandBudapest2"),
+                     backgroundColor = "lavenderblush", 
+                     size = 0.5, 
+                     minRotation = 0, maxRotation = 0), 
+          "cuisine_wordcloud.html"  
+        )
+
+        htmltools::tags$iframe(src = "cuisine_wordcloud.html", width = "100%", height = "500px")
+        ```
 
     -   Create a summary statistic (e.g., average rating, job salary, team win percentage).
 
