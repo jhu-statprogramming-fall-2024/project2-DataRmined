@@ -9,6 +9,7 @@ title: "Project 2"
 ```{r}
 library(dplyr)
 library(purrr)
+library(rvest)
 library(tidyr)
 library(tidycensus)
 library(tidyverse)
@@ -134,9 +135,84 @@ In this part, you and your partner will use the `rvest` package to scrape data f
 
     -   A sports statistics site like ESPN or Baseball Reference (scraping team statistics, player info, etc.)
 
+    ```{r}
+    # Michelin starred restaurants in New York City 
+    url <- "https://en.wikipedia.org/wiki/List_of_Michelin-starred_restaurants_in_New_York_City"
+    ```
+
 2.  Extract data with `rvest`. Here, you will want to identify the specific HTML elements or CSS selectors containing the data. Then, use `rvest` functions like `read_html()`, `html_elements()`, and `html_text()` or `html_table()` to retrieve the data.
 
+    ```{r}
+    # Extract data (read_html, html_elements, html_table)
+    table <- read_html(url) %>%
+      html_elements("table")
+
+    michelin_table <- table[[1]] %>% 
+      html_table(fill = TRUE)
+
+    head(michelin_table)
+    ```
+
 3.  Clean the data. Next, perform some basic wrangling, such as remove extra whitespace, handle missing values, and convert data types as needed. You might find the functions from `dplyr` or `tidyr` useful for any additional transformations, such as renaming columns, filtering rows, or creating new variables.
+
+    ```{r}
+    # Step 1: Remove row if Cuisine or Borough/Country is NA using filter (dplyr)
+    michelin_table <- michelin_table %>%
+      filter(!is.na(Cuisine) & 
+               !str_trim(Cuisine) == "" & 
+             !is.na(`Borough/County - Neighborhood`) & 
+               !str_trim(`Borough/County - Neighborhood`) == "")
+    ```
+
+    ```{r}
+    # Step 2: Create new variable on Open/Closes Status using mutate (dplyr)
+    michelin_table <- michelin_table %>%
+      mutate(status = case_when(
+        grepl("Closed|Temporarily Closed", `2023`) ~ "Closed",
+        TRUE ~ "Open"
+      ))
+
+    head(michelin_table)
+    ```
+
+    ```{r}
+    # Step 3: Create new variable on Neighborhood using mutate (dplyr)
+    michelin_table <- michelin_table %>%
+      mutate(neighborhood = 
+               sapply(strsplit(as.character(`Borough/County - Neighborhood`), " - "), `[`, 1))
+
+    head(michelin_table)
+    ```
+
+    ```{r}
+    # Step 4: Create new variable on Cuisine using mutate (dplyr)
+    michelin_table <- michelin_table %>%
+      mutate(cuisine = 
+               sapply(strsplit(as.character(Cuisine), ", "), `[`, 1))
+
+    head(michelin_table)
+    ```
+
+    ```{r}
+    # Step 5: Remove columns using select (dplyr)
+    michelin_table <- michelin_table %>%
+      select(-Cuisine, -`Borough/County - Neighborhood`, -`2021`, -`2022`, -`2023`, -`2024`)
+
+    head(michelin_table)
+    ```
+
+    ```{r}
+    # Step 6: Arrange by neighborhood using arrange (dplyr)
+    michelin_table <- michelin_table %>%
+      arrange('neighborhood')
+
+    head(michelin_table)
+    ```
+
+    ```{r}
+    unique_cuisines <- unique(michelin_table$cuisine)
+    unique_cuisines
+    ```
 
 4.  Analyze the data. Perform a simple analysis of your choice. For example, you could
 
