@@ -17,6 +17,7 @@ library(tidycensus)
 library(tidyverse)
 library(wesanderson)
 library(wordcloud2)
+library(plotly)
 ```
 
 ## Part 1
@@ -187,7 +188,7 @@ ggplot(income_total_2023, aes(x = NAME, y = income_difference)) +  # Don't map f
 
 ```{r}
 # Plot 3: Income Difference Across Years by State using geom_line
-ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = NAME)) +
+p <- ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = NAME)) +
   geom_line(size = 1) +
   geom_point(size = 2) +
   labs(
@@ -208,9 +209,22 @@ ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = 
     legend.position = "none"
   ) +
   facet_wrap(~ NAME, ncol = 7) 
+
+# Convert ggplot object to interactive plot
+interactive_plot <- ggplotly(p)
+
+# Display the interactive plot
+interactive_plot
+
 ```
 
-5.  Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in pulling data from the API or the analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
+5.  ::: callout-note
+    Line graph above is an interactive plot to help address the congestion of data. Use your mouse to hover over each state graph to identify the income difference between men and women for that specific state.
+    :::
+
+6.  Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in pulling data from the API or the analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
+
+To analyze income disparities between men and women across U.S. states, data from the U.S. Census Bureau was retrieved through the API, cleaned, and prepared for visualization in R. The primary measure was the median income difference between men and women in each state, which was assessed over recent years. The data was first visualized in a bar graph, with each bar representing male and female median income by state. We then calculated the median income difference between male and female. We then created a bar graph for each state indicating the median income difference. This visual analysis highlighted that states like Wyoming, Connecticut, and Massachusetts exhibited some of the largest income gaps, while states like Alaska showed smaller disparities. Lastly, we then created an interactive line graph to highlight the income difference across 2021-2023. Several limitations were considered in the analysis. First, there may be inherent biases or discrepancies in the income data collected by the U.S. Census Bureau, as survey responses can vary, and certain demographic groups may be underrepresented. Additionally, the analysis focuses solely on median income, which may not capture income variations within each gender group or across different industries and job types. Lastly, while the API simplifies data access, inconsistencies in data updates or changes in variable definitions could impact the accuracy of the findings.
 
 *Data cleaning*: <br> - `mutate()` from dplyr to create year column <br> - `map_dfr()` from purrr to combine datasets - `select()` from dplyr to remove columns - `pivot_wider()` from tidyr to reorganize data - `pmap_dbl()` from purrr to calculate income difference - `arrange()` from dplyr to reorder the table *Visualize*: <br> - `geom_bar()` to plot the income by sex and states (2021-2023) - `geom_col()` to plot income difference by sex and states (2023) - `geom_line()` to plot income differences across years and state
 
