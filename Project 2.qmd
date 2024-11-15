@@ -2,12 +2,13 @@
 title: "Project 2"
 ---
 
-**Name:** Da Yea Song (dsong13\@jhmi.edu; dsong13)
+**Name:** Da Yea Song (dsong13\@jhmi.edu; dsong13); Amanda Kim (akim148\@jh.edu)
 
 ## Set Up
 
 ```{r}
 library(dplyr)
+library(ggplot2)
 library(purrr)
 library(rvest)
 library(tidyr)
@@ -19,7 +20,7 @@ library(tidyverse)
 
 1.  Choose a question to investigate. Describe what is the question you aim to answer with the data and what you want to visualize.
 
-    **How was the income gap between men and women varied across US states over the past three years?**
+    **How was the income gap between men and women, measured by the difference in median income, varied across US states over the past three years?**
 
 2.  Extract data from the `tidycensus` API. Use at least three different calls to the `tidycensus` API to extract out different datasets. For example, these could be across years, locations, or variables.
 
@@ -85,7 +86,7 @@ library(tidyverse)
     ```
 
     ```{r}
-    # Step 3: Reorganize data using pivot_wider (tidyr)
+    # Step 4: Reorganize data using pivot_wider (tidyr)
     income_total <- income_total %>%
       pivot_wider(
         names_from = variable,
@@ -101,7 +102,7 @@ library(tidyverse)
     ```
 
     ```{r}
-    # Step 4: Calculate income difference between sexes using pmap_dbl (purr)
+    # Step 5: Calculate income difference between sexes using pmap_dbl (purr)
     income_total <- income_total %>%
       mutate(income_difference = pmap_dbl(
         list(male_income, female_income),
@@ -112,7 +113,7 @@ library(tidyverse)
     ```
 
     ```{r}
-    # Step 5: Reorder the table by year and income difference using arrange (dplyr)
+    # Step 6: Reorder the table by year and income difference using arrange (dplyr)
     income_total <- income_total %>%
       arrange(year, income_difference)
 
@@ -121,7 +122,87 @@ library(tidyverse)
 
 4.  Visualize the data. Create data visualizations of your choice. However, your analysis should include at least three plots with you using at least two different `geom_*()` functions from `ggplot2` (or another package with `geom_*()` functions).
 
-5.  Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in pulling data from the API or the analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
+```{r}
+# Plot 1: Income by Sex and States (2021-2023) using geom_bar
+
+## Reshape the data to long format
+income_total_long <- income_total %>%
+  pivot_longer(cols = c(male_income, female_income), 
+               names_to = "sex", 
+               values_to = "income", 
+               names_prefix = "sex_") 
+
+ggplot(income_total_long, aes(x = NAME, y = income, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~year, ncol = 1) +  # Ensure facets are in one row
+  labs(title = "Income by Sex and State", 
+       x = "U.S States", 
+       y = "Median Income (USD)") +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) + 
+  scale_fill_manual(
+    values = c("female_income" = "coral", "male_income" = "salmon4"),
+    labels = c("Female", "Male")
+  ) +
+  theme_grey() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.text.x = element_text(size = 6, angle = 45, hjust = 1),  
+    axis.text.y = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.position = "bottom",
+    panel.spacing = unit(1, "lines")
+  )
+```
+
+```{r}
+# Plot 2: Income Difference by Sex and States (2023) using geom_col
+
+income_total_2023 <- income_total %>%
+  filter(year == 2023)
+
+ggplot(income_total_2023, aes(x = NAME, y = income_difference)) +  # Don't map fill to NAME
+  geom_col(fill = "lightsteelblue2") +  # Set all bars to the color you want
+  labs(title = "Income Difference by State", 
+       x = "U.S States", 
+       y = "Income Difference (USD)") +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) +  # Wrap state names if needed
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.text.x = element_text(size = 7, angle = 45, hjust = 1),  
+    axis.text.y = element_text(size = 8),
+    panel.spacing = unit(1, "lines")
+)
+```
+
+```{r}
+# Plot 3: Income Difference Across Years by State using geom_line
+ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = NAME)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(
+    title = "Income Difference Across Years by State",
+    x = "Year",
+    y = "Income Difference (USD)"
+  ) +
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 12,face = "bold"),
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6),
+    strip.text = element_text(size = 8), 
+    legend.position = "none"
+  ) +
+  facet_wrap(~ NAME, ncol = 7) 
+
+```
+
+Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in pulling data from the API or the analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
 
 ## Part 2
 
