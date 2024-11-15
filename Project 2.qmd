@@ -140,7 +140,7 @@ ggplot(income_total_long, aes(x = NAME, y = income, fill = sex)) +
   facet_wrap(~year, ncol = 1) +  # Ensure facets are in one row
   labs(title = "Income by Sex and State", 
        subtitle = "Based on data from the US Census",
-       figure = "Figure created by: Amanda and Da-Yea", 
+       caption = "Figure created by: Amanda and Da-Yea", 
        x = "U.S States", 
        y = "Median Income (USD)") +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) + 
@@ -171,7 +171,7 @@ ggplot(income_total_2023, aes(x = NAME, y = income_difference)) +  # Don't map f
   geom_col(fill = "lightsteelblue2") +  # Set all bars to the color you want
   labs(title = "Income Difference by State", 
        subtitle = "Based on data from the US Census",
-       figure = "Figure created by: Amanda and Da-Yea", 
+       caption = "Figure created by: Amanda and Da-Yea", 
        x = "U.S States", 
        y = "Income Difference (USD)") +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) +  # Wrap state names if needed
@@ -193,7 +193,7 @@ ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = 
   labs(
     title = "Income Difference Across Years by State",
     subtitle = "Based on data from the US Census",
-    figure = "Figure created by: Amanda and Da-Yea", 
+    caption = "Figure created by: Amanda and Da-Yea", 
     x = "Year",
     y = "Income Difference (USD)"
   ) +
@@ -208,13 +208,11 @@ ggplot(income_total, aes(x = year, y = income_difference, color = NAME, group = 
     legend.position = "none"
   ) +
   facet_wrap(~ NAME, ncol = 7) 
-
 ```
 
 5.  Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in pulling data from the API or the analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
 
-*Data cleaning*: <br> - `mutate()` from dplyr to create year column <br> - `map_dfr()` from purrr to combine datasets - `select()` from dplyr to remove columns - `pivot_wider()` from tidyr to reorganize data - `pmap_dbl()` from purrr to calculate income difference - `arrange()` from dplyr to reorder the table 
-*Visualize*: <br> - `geom_bar()` to plot the income by sex and states (2021-2023) - `geom_col()` to plot income difference by sex and states (2023) - `geom_line()` to plot income differences across years and state
+*Data cleaning*: <br> - `mutate()` from dplyr to create year column <br> - `map_dfr()` from purrr to combine datasets - `select()` from dplyr to remove columns - `pivot_wider()` from tidyr to reorganize data - `pmap_dbl()` from purrr to calculate income difference - `arrange()` from dplyr to reorder the table *Visualize*: <br> - `geom_bar()` to plot the income by sex and states (2021-2023) - `geom_col()` to plot income difference by sex and states (2023) - `geom_line()` to plot income differences across years and state
 
 ## Part 2
 
