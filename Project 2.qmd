@@ -240,7 +240,7 @@ Line graph above is an interactive plot to help address the congestion of data. 
 
     To analyze income disparities between men and women across U.S. states, data from the U.S. Census Bureau was retrieved through the API, cleaned, and prepared for visualization in R. The primary measure was the median income difference between men and women in each state, which was assessed over recent years. The data was first visualized in a bar graph, with each bar representing male and female median income by state. We then calculated the median income difference between male and female. We then created a bar graph for each state indicating the median income difference. This visual analysis highlighted that states like Wyoming, Connecticut, and Massachusetts exhibited some of the largest income gaps, while states like Alaska showed smaller disparities. Lastly, we then created an interactive line graph to highlight the income difference across 2021-2023. Several limitations were considered in the analysis. First, there may be inherent biases or discrepancies in the income data collected by the U.S. Census Bureau, as survey responses can vary, and certain demographic groups may be underrepresented. Additionally, the analysis focuses solely on median income, which may not capture income variations within each gender group or across different industries and job types. Lastly, while the API simplifies data access, inconsistencies in data updates or changes in variable definitions could impact the accuracy of the findings.
 
-***Data cleaning*****:** <br> - `mutate()` from dplyr to create year column <br> - `map_dfr()` from purrr to combine datasets <br> - `select()` from dplyr to remove columns <br> - `pivot_wider()` from tidyr to reorganize data <br> - `pmap_dbl()` from purrr to calculate income difference <br> - `arrange()` from dplyr to reorder the table <br><br> ***Visualize*****:** <br> - `geom_bar()` to plot the income by sex and states (2021-2023) <br> - `geom_col()` to plot income difference by sex and states (2023) <br> - `geom_line()` to plot income differences across years and state
+    ***Data cleaning*****:** <br> - `mutate()` from dplyr to create year column <br> - `map_dfr()` from purrr to combine datasets <br> - `select()` from dplyr to remove columns <br> - `pivot_wider()` from tidyr to reorganize data <br> - `pmap_dbl()` from purrr to calculate income difference <br> - `arrange()` from dplyr to reorder the table <br><br> ***Visualize*****:** <br> - `geom_bar()` to plot the income by sex and states (2021-2023) <br> - `geom_col()` to plot income difference by sex and states (2023) <br> - `geom_line()` to plot income differences across years and state
 
 ## Part 2
 
@@ -329,8 +329,15 @@ In this part, you and your partner will use the `rvest` package to scrape data f
     ```
 
     ```{r}
-    unique_cuisines <- unique(michelin_table$cuisine)
-    unique_cuisines
+    # Step 7: Remove Reference variable 
+    michelin_table <- michelin_table %>% 
+      filter(cuisine != "Reference")
+    ```
+
+    ```{r}
+    # Step 8: Remove whitespace from variables 
+    michelin_table <- michelin_table %>% 
+      mutate(across(where(is.character), str_trim))
     ```
 
 4.  Analyze the data. Perform a simple analysis of your choice. For example, you could
@@ -359,7 +366,7 @@ In this part, you and your partner will use the `rvest` package to scrape data f
 
     ```{r}
     # Number of michelin-starred restaurants in each neighborhood in NY
-    neighbhorhood_count <- michelin_table %>%
+    neighborhood_count <- michelin_table %>%
       count(neighborhood, sort = TRUE)
 
     # Print the results
@@ -368,7 +375,7 @@ In this part, you and your partner will use the `rvest` package to scrape data f
 
     ```{r}
     # Count the number of restaurants by Cuisine in all of New York
-    cuisine_count_ny <- data %>%
+    cuisine_count_ny <- michelin_table %>%
       count(cuisine, sort = TRUE)
 
     # View the result
@@ -377,9 +384,9 @@ In this part, you and your partner will use the `rvest` package to scrape data f
 
     ```{r}
     # Count the number of restaurants by Cuisine for each Neighborhood
-    cuisine_by_neighborhood <- data %>%
+    cuisine_by_neighborhood <- michelin_table %>%
       group_by(neighborhood, cuisine) %>%
-      summarise(Number_of_Restaurants = n(), .groups = "drop")
+      summarise(number_of_restaurants = n(), .groups = "drop")
 
     # View the result
     print(cuisine_by_neighborhood)
@@ -388,9 +395,9 @@ In this part, you and your partner will use the `rvest` package to scrape data f
     ```{r}
     #Filter for closed restaurants and count by neighborhood
     closed_restaurants_by_neighborhood <- michelin_table %>%
-      filter(Status == "Closed") %>%  # Filter for closed restaurants
-      count(neighborhood, sort = TRUE) %>%  # Count by neighborhood
-      rename(Number_of_Closed_Restaurants = n)
+      filter(status == "Closed") %>%  
+      count(neighborhood, sort = TRUE) %>% 
+      rename(number_of_closed_restaurants = n)
 
     # View the results
     print(closed_restaurants_by_neighborhood)
@@ -400,14 +407,18 @@ In this part, you and your partner will use the `rvest` package to scrape data f
 
 ```{r}
 #Counting Restaurants by Neighborhood
-ggplot(neighborhood_count, aes(x = reorder(neighborhood_count, n), y = n)) +
+ggplot(neighborhood_count, aes(x = reorder(neighborhood, n), y = n)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   coord_flip() +
   labs(title = "Number of Restaurants by Neighborhood",
        subtitle = "In New York City",
        caption = "Graphed by Da Yea Song & Amanda Kim",
        x = "Neighborhood",
-       y = "Number of Restaurants")
+       y = "Number of Restaurants") + 
+   theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 11, face = "bold")
+  )
 ```
 
 ```{r}
@@ -415,39 +426,57 @@ ggplot(neighborhood_count, aes(x = reorder(neighborhood_count, n), y = n)) +
 ggplot(cuisine_count_ny, aes(x = reorder(cuisine, -n), y = n)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   coord_flip() +
-  labs(title = "Cuisine Distribution",
-       subtitle = "In New York City",
-       caption = "Graphed by Da Yea Song & Amanda Kim",
-       x = "Cuisine",
-       y = "Number of Restaurants")
+  labs(
+    title = "Cuisine Distribution",
+    subtitle = "In New York City",
+    caption = "Graphed by Da Yea Song & Amanda Kim",
+    x = "Cuisine",
+    y = "Number of Restaurants"
+  ) +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 11, face = "bold")
+  )
 ```
 
 ```{r}
-#Cuisine by Neighborhood (Faceted Plot):
-ggplot(cuisine_by_neighborhood, aes(x = cuisine, y = Number_of_Restaurants, fill = cuisine)) +
+ggplot(cuisine_by_neighborhood, aes(x = cuisine, y = number_of_restaurants, fill = number_of_restaurants)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~ neighborhood, scales = "free_y") +
-  labs(title = "Cuisine Distribution by Neighborhood",
-       subtitle = "In New York City",
-       caption = "Graphed by Da Yea Song & Amanda Kim",
-       x = "Cuisine",
-       y = "Number of Restaurants") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  facet_wrap(~ neighborhood, ncol = 2) + # Facet by neighborhood
+  labs(
+    title = "Cuisine Distribution by Neighborhood",
+    subtitle = "In New York City",
+    caption = "Graphed by Da Yea Song & Amanda Kim",
+    x = "Cuisine",
+    y = "Number of Restaurants"
+  ) +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 11, face = "bold"), 
+    axis.text.x = element_text(angle = 90, hjust = 1) 
+  )
 ```
 
 ```{r}
 #Closed Restaurants by Neighborhood
-ggplot(closed_restaurants_by_neighborhood, aes(x = reorder(neighborhood, -Number_of_Closed_Restaurants), 
-                                               y = Number_of_Closed_Restaurants)) +
-  geom_bar(stat = "identity", fill = "red") +
+ggplot(closed_restaurants_by_neighborhood, 
+       aes(x = reorder(neighborhood, -number_of_closed_restaurants), 
+           y = number_of_closed_restaurants)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
   coord_flip() +
   labs(title = "Closed Michelin-Starred Restaurants by Neighborhood",
        subtitle = "In New York City",
        caption = "Graphed by Da Yea Song & Amanda Kim",
        x = "Neighborhood",
-       y = "Number of Closed Restaurants")
+       y = "Number of Closed Restaurants") + 
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 11, face = "bold")
+  )
 ```
 
-1.  Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in your scraping or analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
+5.  Report your findings. Provide a paragraph summarizing your methods and key findings. Include any limitations or potential biases in your scraping or analysis. Be sure to comment and organize your code so is easy to understand what you are doing.
 
-***Extracting data*****:** <br> - `read_html()` <br> - `html_table()` - `read_html()`<br> <br> ***Data cleaning*****:** <br> - `mutate()` from dplyr to create new variable <br> - `select()` from dplyr to remove columns <br> - `arrange()` from dplyr to arrange by neighborhood <br> <br> ***Data analysis*****:** <br> - `wordcloud2()` to count how many times specific words appear
+    Based on our data, Japanese and Contemporary cuisine have the largest presence across New York City, with Korean, French, and Italian following. To pull this information from the Wikipedia page, we ran a simple code with the count() function and assigned it to a new variable called “cuisine_count_ny,” which gave us the number of restaurants for each cuisine category across all of New York City. Based on the table/information provided in the Wikipedia page, we were interested in understanding how many Michelin-starred restaurants in New York City closed in the 2023. To pull this information, we assigned each restaurant a status of “open” or “closed.” For any of the rows that had a blank space or a dash on the Wikipedia page, this was coded as “open.” Any restaurants that were indicated as “closed” or “temporarily closed” was coded as “closed.” The bar graph titled “Closed Michelin-Starred Restaurants by Neighborhood” shows that the only closed restaurants in 2023 were from Brooklyn and Manhattan, with majority of the closed restaurants coming from Manhattan. Some limitations or potential biases in web scrapping may come from the lack of data completeness (the Wiki page might not have listed all the Michelin-starred restaurants or if the data might not be up-to-date, especially for recently closed restaurants). There could also be categorization bias, where the cuisine and location categorization may vary or be inconsistent on the webpage. There also might be scraping errors, where errors in parsing HTML can result in missing or duplicated entries.
+
+    ***Extracting data*****:** <br> - `read_html()` <br> - `html_table()` <br> - `read_html()`<br> <br> ***Data cleaning*****:** <br> - `mutate()` from dplyr to create new variable <br> - `select()` from dplyr to remove columns <br> - `arrange()` from dplyr to arrange by neighborhood <br> - `filter()` from dplyr to find and remove row <br> <br> ***Data analysis*****:** <br> - `wordcloud2()` to count how many times specific words appear <br> - `count()` to count the number of michelin-starred restaurants <br> - `summarise()` to count the number of restaurants by cuisine for each neighborhood <br> <br> ***Data visualization*****:** <br> - `geom_bar()` to plot the number of restaurants by neighborhood <br> - `geom_bar()` to plot the number of cuisine distribution across NYC, to plot the number of closed restaurants by neighborhood
